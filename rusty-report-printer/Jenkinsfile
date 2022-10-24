@@ -14,10 +14,14 @@ pipeline {
                     image: node:18.2.0-alpine3.15
                     command: ["sleep", "infinity"]
                   - name: rust
-                    image: rust:1.61-alpine3.15
+                    image: rustlang/rust:nightly-alpine
                     command: ["sleep", "infinity"]
             '''
         }
+    }
+
+    environment {
+        CARGO_UNSTABLE_SPARSE_REGISTRY = 'true'
     }
 
     options {
