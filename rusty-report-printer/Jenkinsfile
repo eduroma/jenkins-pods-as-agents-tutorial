@@ -44,6 +44,7 @@ pipeline {
         buildDiscarder logRotator(numToKeepStr: '10')
         disableConcurrentBuilds()
         timeout(time: 10, unit: 'MINUTES')
+        ansiColor('xterm')
     }
 
     stages {
@@ -79,6 +80,8 @@ pipeline {
             steps {
                 dir(PROJECT_DIR) {
                     container('kaniko'){
+                        // destination = nome da imagem final
+                        //--use-new-run --snapshotMode=redo usados para melhorar a performance do build
                         sh '''/kaniko/executor --context=. \\
                           --dockerfile=./Dockerfile \\
                           --destination=rust-report-printer:v0.1.0 \\
