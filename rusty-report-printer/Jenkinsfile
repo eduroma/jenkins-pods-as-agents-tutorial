@@ -82,15 +82,26 @@ pipeline {
                     container('kaniko'){
                         // destination = nome da imagem final
                         //--use-new-run --snapshotMode=redo usados para melhorar a performance do build
-                        sh '''/kaniko/executor --context=. \\
+                        sh """/kaniko/executor --context=. \\
                           --dockerfile=./Dockerfile \\
-                          --destination=rust-report-printer:v0.1.0 \\
+                          ${getDestination()} \\
                           --use-new-run --snapshotMode=redo \\
                           --no-push
-                        '''
+                        """
                     }
                 }
             }
         }
     }
+}
+
+def getDestination() {
+  
+  def destinationCommand = "--destination=rusty-report-printer"
+  def destination = "${destinationCommand}:${env.GIT_COMMIT}"
+
+  if (env.GIT_BRANCH == 'master') {
+    destination += " ${destinationCommand}:latest"
+  }
+  return destination
 }

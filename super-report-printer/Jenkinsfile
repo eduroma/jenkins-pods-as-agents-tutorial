@@ -7,7 +7,7 @@ pipeline {
     // We should really use some specific agent, we are getting crashes on some agents without Node or Docker!
     agent {
         kubernetes {
-            inheritFrom 'Node16Alpine'
+            inheritFrom 'Node16Alpine Kaniko'
             yamlMergeStrategy merge()
             defaultContainer 'node16'
             yaml '''
@@ -33,16 +33,6 @@ pipeline {
                     limits:
                       cpu: 1
                       memory: 16Mi
-                - name: kaniko
-                  image: gcr.io/kaniko-project/executor:v1.8.1-debug
-                  command: ["sleep", "infinity"]
-                  resources:
-                    requests:
-                      cpu: 100m
-                      memory: 256Mi
-                    limits:
-                      cpu: 2
-                      memory: 256Mi
             '''
         }
     }
@@ -85,15 +75,26 @@ pipeline {
             steps {
                 dir(PROJECT_DIR) {
                     container('kaniko'){
-                        sh '''/kaniko/executor --context=. \\
+                        sh """ /kaniko/executor --context=. \\
                           --dockerfile=./Dockerfile \\
-                          --destination=super-report-printer:v0.1.0 \\
+                          ${getDestination()} \\
                           --use-new-run --snapshotMode=redo \\
                           --no-push
-                        '''
+                        """
                     }
                 }
             }
         }
     }
+}
+
+def getDestination() {
+  
+  def destinationCommand = "--destination=super-report-printer"
+  def destination = "${destinationCommand}:${env.GIT_COMMIT}"
+
+  if (env.GIT_BRANCH == 'master') {
+    destination += " ${destinationCommand}:latest"
+  }
+  return destination
 }
